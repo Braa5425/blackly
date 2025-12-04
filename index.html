@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/juice-itc');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #100F0F;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Press Start 2P', monospace;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+            z-index: 100;
+        }
+        .text {
+            color: white;
+            font-size: 48px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .blur-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(10px);
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        .start-text {
+            color: white;
+            font-size: 32px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="text">Black</div>
+    
+    <div class="blur-overlay" id="overlay">
+        <div class="start-text">Click to Start</div>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="song.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bgMusic2" loop>
+        <source src="song2.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bgMusic3">
+        <source src="song3.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const body = document.body;
+        const text = document.querySelector('.text');
+        const overlay = document.getElementById('overlay');
+        const audio = document.getElementById('bgMusic');
+        const audio2 = document.getElementById('bgMusic2');
+        const audio3 = document.getElementById('bgMusic3');
+        
+        let clickCount = 0;
+        let spamActivated = false;
+        let started = false;
+        let hasShownCalledIt = false;
+
+        // Remove overlay and start music
+        overlay.addEventListener('click', () => {
+            overlay.classList.add('hidden');
+            audio.volume = 1.0;
+            audio.play();
+            started = true;
+        });
+
+        // Function to generate pastel color
+        function generatePastelColor() {
+            const r = Math.floor((Math.random() * 127) + 127);
+            const g = Math.floor((Math.random() * 127) + 127);
+            const b = Math.floor((Math.random() * 127) + 127);
+            return '#' + r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0') + b.toString(16).padStart(2, '0');
+        }
+
+        // Change colors on click
+        body.addEventListener('click', () => {
+            if (!started) return;
+
+            // Count clicks
+            clickCount++;
+
+            // Check if reached 10 clicks and not already activated
+            if (clickCount === 10 && !spamActivated && !hasShownCalledIt) {
+                spamActivated = true;
+                hasShownCalledIt = true;
+                audio.pause();
+                audio2.volume = 1.0;
+                audio2.play();
+                text.textContent = "You called it.";
+                text.style.fontFamily = "'Juice ITC', cursive";
+                text.style.fontSize = "64px";
+                body.style.backgroundColor = '#100F0F';
+                text.style.color = 'red';
+                
+                // Wait 3 seconds then show "lol jk"
+                setTimeout(() => {
+                    // Stop audio2 and play audio3
+                    audio2.pause();
+                    audio2.currentTime = 0;
+                    audio3.volume = 1.0;
+                    audio3.play();
+                    
+                    text.textContent = "lol jk";
+                    text.style.fontFamily = "'Comic Sans MS', cursive, sans-serif";
+                    text.style.fontSize = "56px";
+                    text.style.color = "black";
+                    body.style.backgroundColor = "#90EE90";
+                    
+                    // Wait 1.5 seconds then reset
+                    setTimeout(() => {
+                        // Reset everything
+                        clickCount = 0;
+                        spamActivated = false;
+                        started = true; // Keep started as true to skip overlay
+                        
+                        // Stop audio3 and restart audio
+                        audio3.pause();
+                        audio3.currentTime = 0;
+                        audio.currentTime = 0;
+                        audio.play();
+                        
+                        // Reset styles
+                        text.textContent = "Black";
+                        text.style.fontFamily = "'Press Start 2P', monospace";
+                        text.style.fontSize = "48px";
+                        text.style.color = "white";
+                        body.style.backgroundColor = '#100F0F';
+                    }, 1500);
+                }, 3000);
+                
+                return;
+            }
+
+            // Generate color (pastel if spam activated, random if not)
+            if (!spamActivated) {
+                const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+                body.style.backgroundColor = randomColor;
+
+                // Calculate brightness to determine text color
+                const hex = randomColor.replace('#', '');
+                const r = parseInt(hex.substr(0, 2), 16);
+                const g = parseInt(hex.substr(2, 2), 16);
+                const b = parseInt(hex.substr(4, 2), 16);
+                const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+                // Set text color based on background brightness
+                text.style.color = brightness > 128 ? 'black' : 'white';
+            }
+        });
+    </script>
+</body>
+</html>
